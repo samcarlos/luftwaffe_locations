@@ -9,7 +9,7 @@ get_barplot_date_map = function(temp_data){
   temp_data
   
   temp_data %>% 
-    ggplot(aes(x = group_type_graph_name, y = total_w_approx, fill = (loss_ratio)) )+geom_bar(stat = 'identity') + 
+    ggplot(aes(x = group_type_graph_name, y = total_w_approx, fill = log(loss_ratio+.001)) )+geom_bar(stat = 'identity') + 
     scale_y_continuous(limits=c(0,total_aircraft), expand = c(0, 0)) +
     geom_text(data = temp_data, aes(x = factor(group_type_graph_name),  y=total_w_approx+5, label = group_type_graph_name), 
               position = position_dodge(0.9), size = 2.25, angle = 90,  color = "Black", hjust = 'left')+
@@ -22,7 +22,7 @@ get_barplot_date_map = function(temp_data){
       low = "blue",
       high = "red",
       aesthetics = "fill",
-      limits = c(0, 2),
+      limits = c(-5, 0.56),
       na.value = "grey50"
     ) + ylab(temp_data[1,'map_front_names'])+theme( axis.title.y = element_text(size = 10 ) )+ 
     theme(legend.position="none",axis.ticks.x=element_blank())  +

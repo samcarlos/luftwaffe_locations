@@ -25,6 +25,12 @@ for (q in sort(unique(num_aircraft_by_map_front[,'date_start']))[-c(1:2)]){
     geom_blank() +
     theme_bw()
   
+  base <- ggplot(df, aes(x, y)) +
+    geom_blank() +
+    theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
+                       panel.grid.minor = element_blank(), axis.line = element_line(colour = "white"),
+                       axis.text.x=element_blank(),axis.text.y=element_blank()
+    )+ xlab('')+ylab('') 
   big_map = image_read(paste0("/Users/sweiss/Downloads/temp_plots/big_plots/",as.Date(q),".png"))
   base = base +  annotation_custom(grob = rasterGrob(image_rotate(big_map, degrees = 270)),
                                    ymin = min(df[,'y']) ,
@@ -34,18 +40,18 @@ for (q in sort(unique(num_aircraft_by_map_front[,'date_start']))[-c(1:2)]){
 
   
   
-  for(x in names(maps_of_map_fronts_image_magick)){
-    base = base +  annotation_custom(grob = rasterGrob(image_rotate(maps_of_map_fronts_image_magick[[x]], degrees = 270)),
-                                     ymin = sort(subset(num_aircraft_by_map_front, date_start == '1940-01-15' & map_front == x)[,'end_height'])  ,
-                                     ymax = sort(subset(num_aircraft_by_map_front, date_start == '1940-01-15' & map_front == x)[,'end_height']) ,
-                                     xmin = 0,
-                                     xmax = 100)
-
-
-
-
-
-  }
+  # for(x in names(maps_of_map_fronts_image_magick)){
+  #   base = base +  annotation_custom(grob = rasterGrob(image_rotate(maps_of_map_fronts_image_magick[[x]], degrees = 270)),
+  #                                    ymin = subset(num_aircraft_by_map_front, date_start == '1940-01-15' & map_front == x)[,'start_height'] -75 ,
+  #                                    ymax = subset(num_aircraft_by_map_front, date_start == '1940-01-15' & map_front == x)[,'start_height'] ,
+  #                                    xmin = 0,
+  #                                    xmax = 100)
+  # 
+  # 
+  # 
+  # 
+  # 
+  # }
 
   
   for( x in as.numeric(rownames(num_aircraft_by_map_front_subset)) ){
@@ -100,8 +106,8 @@ for (q in sort(unique(num_aircraft_by_map_front[,'date_start']))[-c(1:2)]){
   
   date_locs = num_aircraft_by_map_front_subset %>% group_by(date_start) %>% summarise(start_x = min(x_coord_start), end_x = max(x_coord_end)) %>% as.data.frame()
   for(x in 1:nrow(date_locs)){
+    base = base + annotation_custom(grob = textGrob(substr(date_locs[x,'date_start'], 1,7), rot = 0, gp=gpar(fontsize=5,fontface="italic")),  xmin = date_locs[x,'start_x'], xmax = date_locs[x,'end_x'], ymin = min(df[,'y']), ymax = min(df[,'y']))
     
-    base = base + annotation_custom(grob = textGrob(substr(date_locs[x,'date_start'], 1,7), rot = 0, gp=gpar(fontsize=5,fontface="italic")),  xmin = date_locs[x,'start_x'], xmax = date_locs[x,'end_x'], ymin = -1200, ymax = -1200)
     if(as.numeric(substr(date_locs[x,'date_start'], 6,7)) %% 2 == 0){
       #base = base + geom_segment(x = date_locs[x,'start_x'], xend = date_locs[x,'end_x'], y = 0, yend = 0)
       base = base + annotate("rect", ymin = -Inf, ymax = Inf, xmin = date_locs[x,'start_x'], xmax = date_locs[x,'end_x'], fill = "grey", alpha = .1, color = NA)
@@ -124,7 +130,7 @@ for (q in sort(unique(num_aircraft_by_map_front[,'date_start']))[-c(1:2)]){
   if(nrow(shoah)>0){
     for(x in 1:nrow(shoah)){
       
-      base = base + annotation_custom(grob = textGrob(shoah[x,'Event'], rot = 90,gp=gpar(fontsize=5,fontface="italic", col = 'yellow')),  xmin = shoah[x,'x_coord_end'], xmax = shoah[x,'x_coord_start']+100, ymin = shoah[x,'end_height'], ymax = shoah[x,'start_height'])
+      base = base + annotation_custom(grob = textGrob(shoah[x,'Event'], rot = 90,gp=gpar(fontsize=5,fontface="italic", col = "#f8a53c")),  xmin = shoah[x,'x_coord_end']+50, xmax = shoah[x,'x_coord_start']+100, ymin = shoah[x,'end_height'], ymax = shoah[x,'start_height'])
       
       
     }
@@ -155,23 +161,33 @@ for (q in sort(unique(num_aircraft_by_map_front[,'date_start']))[-c(1:2)]){
   library(gridtext)
   if(nrow(timeline_text) > 0){
     for(x in 1:nrow(timeline_text)){
+      hadjust = 0
+      if(timeline_text[x,'east'] == 'West'){hadjust = 1}
       
       base = base + annotation_custom(
-        grob = textbox_grob(timeline_text[x,'text'], hjust = 1, vjust = 0, halign = 0.5, valign = 0.5,
-                            width = unit(2, "inches"), height = unit(1, "inches"),
-                            orientation = "left-rotated"#, box_gp = gpar(col = "black"),
-                            ,gp=gpar(fontsize=8,fontface="bold")
-        )   ,  
+        grob = textbox_grob(
+          timeline_text[x,'text'],hjust = hadjust, vjust = 0, halign = .5, valign = 0,
+          width = unit(2, "inches"), height = unit(1, "inches"),
+          orientation = "left-rotated"#, box_gp = gpar(col = "black"),
+          ,gp=gpar(fontsize=6)
+        )   ,
         xmin = timeline_text[x,'start_x'],
-        xmax = timeline_text[x,'end_x'], 
-        ymin = timeline_text[x,'y_start'], 
+        xmax = timeline_text[x,'end_x'],
+        ymin = timeline_text[x,'y_start'],
         ymax = timeline_text[x,'y_end']
       )
+      # base = base + annotation_custom(grob = textGrob(timeline_text[x,'text'], rot = 90,gp=gpar(fontsize=5)),      xmin = timeline_text[x,'start_x'],
+      #                                 xmax = timeline_text[x,'end_x'],
+      #                                 ymin = timeline_text[x,'y_start'],
+      #                                 ymax = timeline_text[x,'y_end']
+      # )
       
     }
     
     
   }
+  base = base+theme(legend.position = 'none')
+  
   ggsave(base, file=paste0("/Users/sweiss/Downloads/temp_plots/by_date/plot_", 'test_equal_heights_maps_date_subset21234',temp_date_end,".png"), width = max(df[,'x']) - min(df[,'x']), height = max(num_aircraft_by_map_front[,'start_height'])*1.5-min(num_aircraft_by_map_front[,'start_height']) *1.5  *2, units = "px",limitsize = FALSE)
   
   
@@ -185,4 +201,8 @@ library(animation)
 saveGIF({
   for (i in list_of_time_plots) plot(image_rotate(i, degrees = 90))},
   movie.name = 'test.gif', ani.width = 10000, ani.height = 6000)
+
+ggsave(base, file=paste0("/Users/sweiss/Downloads/base", 'test_equal_heights_maps_date_subset21234',temp_date_end,".png"), width = max(df[,'x']) - min(df[,'x']), height = max(num_aircraft_by_map_front[,'start_height'])*1.5-min(num_aircraft_by_map_front[,'start_height']) *1.5  *2, units = "px",limitsize = FALSE)
+
+
 
