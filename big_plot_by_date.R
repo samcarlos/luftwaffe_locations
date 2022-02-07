@@ -44,6 +44,10 @@ get_barplot_date_map = function(temp_data){
 library( RColorBrewer)
 map <- get_googlemap(center = 'Częstochowa', zoom = 4,maptype= "terrain",
                      style = 'feature:administrative.country|element:labels|visibility:off', scale = 4)
+# 
+# map_1 = ggmap(map)
+# map_1 = map_1 + geom_point(data = location_sizes  %>% select(lat, lon) %>% unique(), aes(x = lon, y = lat, shape = 7))+scale_shape_identity() + 
+#   ggtitle("Luftwaffe Airfield Locations 1939 - 1945")+xlab("Longitude") + ylab("Latitude")
 
 get_map_overall_by_date = function(start_date, data){
   
@@ -112,13 +116,11 @@ get_map_overall_by_date = function(start_date, data){
   
 }
 
-test_map = get_map_overall_by_date('1944-06-15', merge(grop_type_graph_names, location_sizes_map_front_2, by = 'group_type_graph') )+ ggtitle('Luftwaffe Planes by Front')
+# test_map = get_map_overall_by_date('1944-06-15', merge(grop_type_graph_names, location_sizes_map_front_2, by = 'group_type_graph') )+ ggtitle('Luftwaffe Planes by Front')
 lapply(unique(location_sizes_map_front_2[,'date_start']), function(x) {
   ggsave( get_map_overall_by_date(x, merge(grop_type_graph_names, location_sizes_map_front_2, by = 'group_type_graph')) + ggtitle(paste('Luftwaffe Planes by Front', (x))), 
-          file=paste0("/Users/sweiss/Downloads/temp_plots/big_plots/",x,".png"),width = 5000, height = 5000, units = "px",limitsize = FALSE)    }
+          file=paste0("plots/gif_plots/",x,".png"),width = 5000, height = 5000, units = "px",limitsize = FALSE)    }
 )
-
-ggsave(test_map, file=paste0("/Users/sweiss/Downloads/temp_plots/single_big_map",".png"),width = 5000, height = 5000, units = "px",limitsize = FALSE)    
 
 
 

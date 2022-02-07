@@ -10,8 +10,10 @@ library(zoo)
 library(lubridate)
 library(magick)
 library(grid)
+library( RColorBrewer)
+library(gridtext)
 
-load('data/luftwaffe_sizes_locations.rdata')
+load('data/luftwaffe_sizes_locations_2.rdata')
 
 #merge location data with sizes and loss data 
 #map_front are geographicial locations where luftwaffe fought
@@ -37,7 +39,6 @@ location_sizes = merge(
   luftwaffe_locations %>% subset(disbanded == 0),# %>% select(group_squadron, group_type, squadron_number, group_number, subgroup, date_start,lon, lat, group_squadron), 
   on = c(group_type, squadron_number, group_number, subgroup, date_start), all.y = TRUE) %>% 
   mutate(approx_size = as.numeric(approx_size))
-
 
 
 
@@ -124,14 +125,14 @@ avg_locs_map_front[which(avg_locs_map_front[,'map_front'] == 'Tunisia'),c('lon')
 
 location_sizes_map_front = merge(location_sizes_map_front %>% select(-lat,-lon), avg_locs_map_front, by = 'map_front')
 location_sizes_map_front_prev = merge(location_sizes_map_front_prev %>% select(-lat,-lon), 
-                                                                 avg_locs_map_front %>% select(map_front, distance_to_e_germany_plot) , 
-                                                                 by = 'map_front')
+                                      avg_locs_map_front %>% select(map_front, distance_to_e_germany_plot) , 
+                                      by = 'map_front')
 location_sizes_map_front_prev = merge(location_sizes_map_front_prev, 
-                                                                 avg_locs_map_front %>% select(map_front, distance_to_e_germany_plot,lat , lon) %>%
-                                                                   mutate(distance_to_e_germany_plot_prev = distance_to_e_germany_plot, 
-                                                                          prev_map_front = map_front, 
-                                                                          prev_lat = lat, prev_lon = lon) %>%
-                                                                   select(prev_map_front, distance_to_e_germany_plot_prev, prev_lat, prev_lon), by = 'prev_map_front')
+                                      avg_locs_map_front %>% select(map_front, distance_to_e_germany_plot,lat , lon) %>%
+                                        mutate(distance_to_e_germany_plot_prev = distance_to_e_germany_plot, 
+                                               prev_map_front = map_front, 
+                                               prev_lat = lat, prev_lon = lon) %>%
+                                        select(prev_map_front, distance_to_e_germany_plot_prev, prev_lat, prev_lon), by = 'prev_map_front')
 
 
 location_sizes_map_front_prev[,'map_front'] = factor(location_sizes_map_front_prev[,'map_front'], levels = map_front_order )
@@ -164,7 +165,7 @@ location_sizes_map_front_2 = location_sizes_map_front %>%
 
 location_sizes_map_front_2 = merge(location_sizes_map_front_2, 
                                    real_size_loss_data %>% subset(group_type_graph != '' & missing_data == 0) %>% mutate(has_actual_data  = 1) %>% select(map_front, date_start, group_type_graph)  %>% mutate(has_actual_data  = 1),
-                                                            on = c('map_front', 'date_start', 'group_type_graph'), all.x = TRUE
+                                   on = c('map_front', 'date_start', 'group_type_graph'), all.x = TRUE
 )
 
 location_sizes_map_front_2[,'map_front'] = factor(location_sizes_map_front_2[,'map_front'], levels = map_front_order)
@@ -172,79 +173,24 @@ location_sizes_map_front_2[which(is.na(location_sizes_map_front_2[,'has_actual_d
 location_sizes_map_front_2[,'Fighter'] = 'Fighter'
 location_sizes_map_front_2[which(location_sizes_map_front_2[,'group_type_graph'] %in% c('Ground Attack', 'Bomber', "Transport")),'Fighter'] = 'Bomber'
 
-#location_sizes_map_front %>%  subset(group_type_graph!='' ) %>% group_by(eastern_front, date_start, group_type_graph) %>% summarise(writeoff = sum(lost_enemy + lost_accident + lost_maintenance)) %>%as.data.frame()%>% ggplot(aes(x = date_start, y=  writeoff, group  = eastern_front, colour = eastern_front)) + geom_line() + facet_grid(group_type_graph~., scales = 'free')
-#location_sizes_map_front %>%subset(group_type_graph!='' ) %>% group_by(eastern_front, date_start, group_type_graph) %>% summarise(writeoff = sum(lost_enemy + lost_accident + lost_maintenance)) %>%as.data.frame()%>% ggplot(aes(x = date_start, y=  writeoff, group  = eastern_front, colour = eastern_front)) + geom_line() + facet_grid(group_type_graph~., scales = 'free')
 
 
-
-#function to create_barplots on graph
-
-# get_barplot_date_map_simple = function(temp_data){
-# 
-# 
-#   total_aircraft = sum(temp_data[,'total_w_approx'])
-#   temp_data[is.na(temp_data[,'has_actual_data']),'has_actual_data'] = 0
-# 
-# 
-#   temp_data_all = temp_data%>% mutate(approx_loss = loss_ratio* total_w_approx) %>%
-#     group_by(Fighter, map_front) %>%
-#     summarise( total = sum(total,na.rm = TRUE), total_w_approx = sum(total_w_approx,na.rm = TRUE))%>%
-#     as.data.frame()
-#   temp_data_actual_data = temp_data %>% subset(has_actual_data == 1) %>% mutate(approx_loss = loss_ratio* total_w_approx) %>%
-#     group_by(Fighter, map_front) %>% summarise(  total_w_approx = sum(total_w_approx,na.rm = TRUE), approx_loss = sum(approx_loss,na.rm = TRUE)) %>%
-#     mutate(loss_ratio = approx_loss / total_w_approx) %>% as.data.frame()
-#   if(nrow(temp_data_actual_data) > 0){
-#     temp_data_all = merge(temp_data_all, temp_data_actual_data %>% select(Fighter, map_front, loss_ratio), on = c('Fighter','map_front')) %>%
-#       mutate(approx_loss = total_w_approx* loss_ratio)
-# 
-#     temp_data_all[,'to_remove'] = 0
-# 
-#   }else{
-#     dummy_row = temp_data_all[1,]
-#     temp_data_all = rbind(temp_data_all, dummy_row)
-#     temp_data_all[,'loss_ratio'] = 1
-#     temp_data_all[,'approx_loss'] = 1
-#     temp_data_all[1:(nrow(temp_data_all)-1),'loss_ratio'] = NA
-#     temp_data_all[1:(nrow(temp_data_all)-1),'approx_loss'] = NA
-#     temp_data_all[,'to_remove'] = 0
-#     temp_data_all[nrow(temp_data_all),'to_remove'] = 1
-#   }
-#   temp_data_all %>% subset(to_remove == 0)%>%
-#     ggplot(aes(x = Fighter, y = total_w_approx, fill = (loss_ratio)) )+geom_bar(stat = 'identity') +
-#     scale_y_continuous(limits=c(0,total_aircraft), expand = c(0, 0)) +
-#      geom_point(data = temp_data_all %>% subset(to_remove == 0) ,
-#                                                    aes( y=approx_loss, x=Fighter), stat ='identity' ) +
-# 
-# 
-# 
-#     scale_colour_gradient(
-#       low = "blue",
-#       high = "red",
-#       aesthetics = "fill",
-#       limits = c(0, .8),
-#       na.value = "grey50"
-#     ) + ylab(temp_data[1,'map_front'])+theme( axis.text.x=element_text(size=3) ,  axis.title.x = element_text(size = 3/.pt , colour = "red" ) )+
-#     theme(legend.position="none",axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank())
-# 
-# 
-# 
-# }
 get_barplot_date_map_simple = function(temp_data){
-
-
+  
+  
   total_aircraft = sum(temp_data[,'total_w_approx'])
   temp_data = temp_data %>% mutate(new_name = ifelse(Fighter == 'Bomber', 'B', 'F'))
   temp_data %>%
-    ggplot(aes(x = new_name, y = total_w_approx, fill = log(loss_ratio)), label = total_w_approx )+geom_bar(stat = 'identity') +
+    ggplot(aes(x = new_name, y = total_w_approx, fill = log(loss_ratio+.0001)), label = total_w_approx )+geom_bar(stat = 'identity') +
     scale_y_continuous(limits=c(0,total_aircraft), expand = c(0, 0), breaks = unique(c(temp_data[,'total_w_approx'], total_aircraft))) +
     #geom_text(data = temp_data , aes(x = Fighter, y = total_w_approx+20, label = total_w_approx)) + 
-       # geom_text(data = temp_data, aes(x = factor(new_name),  y=total_w_approx-10, label = new_name), 
-       #             position = position_dodge(0.9), size = 1, angle = 90,  color = "Black", hjust = 'left')+
+    # geom_text(data = temp_data, aes(x = factor(new_name),  y=total_w_approx-10, label = new_name), 
+    #             position = position_dodge(0.9), size = 1, angle = 90,  color = "Black", hjust = 'left')+
     geom_point(data = temp_data  ,
                aes( y=approx_loss, x=new_name), stat ='identity', size = .25 ) +
-
-
-
+    
+    
+    
     scale_colour_gradient(
       low = "blue",
       high = "red",
@@ -255,11 +201,11 @@ get_barplot_date_map_simple = function(temp_data){
     theme(text = element_text(size=(3.5)),legend.position="none",axis.title.x=element_blank(),
           axis.text.x=element_blank(),axis.ticks.x=element_blank(), plot.margin = margin(), 
           axis.ticks.length.x = unit(0,'pt'),axis.ticks.length.y = unit(0,'pt')#,axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank(), axis.ticks.length.y = unit(0,'pt')
-         )
-    
-
-
-
+    )
+  
+  
+  
+  
 }
 
 x_coord_white_space = 100
@@ -308,57 +254,45 @@ elements_to_pivot = elements_to_pivot[-which((elements_to_pivot[,'date_start'] =
 elements_to_pivot = elements_to_pivot[-which((elements_to_pivot[,'date_start'] == '1945-01-15')*(elements_to_pivot[,'map_front'] == 'eastern_germany')==1),]
 
 for(x in unique(elements_to_pivot[,'date_start']) ){
-
+  
   
   dates_to_shift = which(num_aircraft_by_map_front[,'date_start'] > x)
   num_aircraft_by_map_front[dates_to_shift,'x_coord_end'] = num_aircraft_by_map_front[dates_to_shift,'x_coord_end'] + x_coord_graph_space
   num_aircraft_by_map_front[dates_to_shift,'x_coord_start'] = num_aircraft_by_map_front[dates_to_shift,'x_coord_start'] + x_coord_graph_space
-
+  
   temp_loc = which((num_aircraft_by_map_front[,'date_start'] == x)*(num_aircraft_by_map_front[,'map_front']  %in% ( subset(elements_to_pivot, date_start == x) %>% pull(map_front) )) == 1)
   num_aircraft_by_map_front[temp_loc,'x_coord_end'] = num_aircraft_by_map_front[temp_loc,'x_coord_end'] + x_coord_graph_space
   num_aircraft_by_map_front[temp_loc,'x_coord_start'] = num_aircraft_by_map_front[temp_loc,'x_coord_start'] + x_coord_graph_space
-
+  
 }
 
 elements_to_pivot = data.frame(
   date_start = c('1944-11-15'),
-   map_front =  c('eastern_germany')
+  map_front =  c('eastern_germany')
 )
 
 for(x in 1:nrow(elements_to_pivot)){
-
+  
   dates_to_shift = which(num_aircraft_by_map_front[,'date_start'] > elements_to_pivot[x,'date_start'])
   num_aircraft_by_map_front[dates_to_shift,'x_coord_end'] = num_aircraft_by_map_front[dates_to_shift,'x_coord_end'] + x_coord_graph_space
   num_aircraft_by_map_front[dates_to_shift,'x_coord_start'] = num_aircraft_by_map_front[dates_to_shift,'x_coord_start'] + x_coord_graph_space
-
+  
   temp_loc = which((num_aircraft_by_map_front[,'date_start'] == elements_to_pivot[x,'date_start'])*(num_aircraft_by_map_front[,'map_front']  == elements_to_pivot[x,'map_front']) == 1)
   num_aircraft_by_map_front[temp_loc,'x_coord_end'] = num_aircraft_by_map_front[temp_loc,'x_coord_end'] + x_coord_graph_space
   num_aircraft_by_map_front[temp_loc,'x_coord_start'] = num_aircraft_by_map_front[temp_loc,'x_coord_start'] + x_coord_graph_space
-
+  
 }
 
-# 
-# temp_plots = lapply(1:nrow(num_aircraft_by_map_front),
-# 
-#                     function(x){
-#                       plot = subset(location_sizes_map_front_2, group_type_graph !='') %>%
-#                         subset(date_start == num_aircraft_by_map_front[x,c('date_start')] & map_front == num_aircraft_by_map_front[x,c('map_front')]) %>%
-#                         get_barplot_date_map
-#                       return(plot)
-# 
-#                     }
-# 
-# )
 
 location_sizes_map_front_2_simple = merge(location_sizes_map_front_2 %>% subset(group_type_graph != '') %>% mutate(approx_loss = loss_ratio* total_w_approx) %>%
-  group_by(Fighter, map_front, date_start) %>%
-  summarise( total = sum(total,na.rm = TRUE), total_w_approx = sum(total_w_approx,na.rm = TRUE))%>%
-  as.data.frame(), 
-  expand.grid(
-       Fighter = c("Fighter", 'Bomber'),
-       date_start= unique(location_sizes_map_front[,'date_start']),
-       map_front = unique(location_sizes_map_front[,'map_front'])) ,
-  by = c('Fighter','map_front', 'date_start'), all = TRUE) %>% 
+                                            group_by(Fighter, map_front, date_start) %>%
+                                            summarise( total = sum(total,na.rm = TRUE), total_w_approx = sum(total_w_approx,na.rm = TRUE))%>%
+                                            as.data.frame(), 
+                                          expand.grid(
+                                            Fighter = c("Fighter", 'Bomber'),
+                                            date_start= unique(location_sizes_map_front[,'date_start']),
+                                            map_front = unique(location_sizes_map_front[,'map_front'])) ,
+                                          by = c('Fighter','map_front', 'date_start'), all = TRUE) %>% 
   group_by(Fighter, map_front, date_start) %>% 
   summarise(total = sum(total, na.rm = TRUE), total_w_approx = sum(total_w_approx, na.rm = TRUE)) %>% as.data.frame()
 
@@ -372,66 +306,29 @@ location_sizes_map_front_2_simple = merge(location_sizes_map_front_2_simple,
 location_sizes_map_front_2_simple = merge(location_sizes_map_front_2_simple, map_front_names_df, by.y = 'map_front_order', by.x = 'map_front')
 
 temp_plots_simple = lapply(1:nrow(num_aircraft_by_map_front),
-
+                           
                            function(x){
                              plot = location_sizes_map_front_2_simple %>%
                                subset(date_start == num_aircraft_by_map_front[x,c('date_start')] & map_front == num_aircraft_by_map_front[x,c('map_front')]) %>%
                                get_barplot_date_map_simple
                              return(plot)
-
+                             
                            }
-
+                           
 )
-# 
-# temp_plots_simple = lapply(1:nrow(num_aircraft_by_map_front), 
-#                            
-#                            function(x){
-#                              plot = location_sizes_map_front_2_simple %>% 
-#                                subset(date_start == num_aircraft_by_map_front[x,c('date_start')] & map_front == num_aircraft_by_map_front[x,c('map_front')]) %>% 
-#                                get_barplot_date_map_simple
-#                              return(plot)
-#                              
-#                            }
-#                            
-# )
-# 
-
-
-  
-  
-df <- data.frame(x = c(0,num_aircraft_by_map_front[,'x_coord_end']),
+df <- data.frame(x = c((-100),max(num_aircraft_by_map_front[,'x_coord_end'])),
                  y = c(min(num_aircraft_by_map_front[,'start_height']) *1.5,max(num_aircraft_by_map_front[,'start_height'])*1.5))
-base <- ggplot(df, aes(x, y)) +
-  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-                                  panel.grid.minor = element_blank(), axis.line = element_line(colour = "white")) + xlab('')+ylab('')
-
-df <- data.frame(x = c(0,num_aircraft_by_map_front[,'x_coord_end']),
-                 y = c(min(num_aircraft_by_map_front[,'start_height']) *1.5,max(num_aircraft_by_map_front[,'start_height'])*1.5))
-base <- ggplot(df, aes(x, y)) +
-  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "white"),
-                     legend.position="none",axis.title.x=element_blank(),
-                     axis.text.x=element_blank(),axis.text.y=element_blank(),
-                     plot.margin = margin()) + xlab('')+ylab('')
-
-base <- ggplot(df, aes(x, y)) +
-  geom_blank() +
-  theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
-                     panel.grid.minor = element_blank(), axis.line = element_line(colour = "white"),
-                     axis.text.x=element_blank(),axis.text.y=element_blank(),
-                     axis.ticks = element_blank()
-  )+ xlab('')+ylab('')
 
 base <- ggplot(df, aes(x, y)) +
   geom_blank() +
   theme_bw() + theme(panel.border = element_blank(), panel.grid.major = element_blank(),
                      panel.grid.minor = element_blank(), axis.line = element_line(colour = "white"),
                      axis.text.x=element_blank(),axis.text.y=element_blank()
-                     )+ xlab('')+ylab('') 
+  )+ xlab('')+ylab('') 
 
 
 for( x in 1:length(temp_plots_simple)){
-  if((num_aircraft_by_map_front[x,'date_start'] > '1939-08-01' )& (num_aircraft_by_map_front[x, 'num_aircraft']> 0 )){
+  if((num_aircraft_by_map_front[x,'date_start'] > '1939-08-01' )& (num_aircraft_by_map_front[x, 'num_aircraft'] > 1.6 )){
     base = base +  annotation_custom(grob = ggplotGrob(temp_plots_simple[[x]]),
                                      ymin = num_aircraft_by_map_front[x,'start_height'],
                                      ymax = num_aircraft_by_map_front[x,'end_height'],
@@ -451,8 +348,6 @@ top_movements = (location_sizes_map_front_prev %>%
                    mutate(curve_heights = sign( distance_to_e_germany_plot_prev - distance_to_e_germany_plot)*total_w_approx ))  %>% subset(total_w_approx >60)
 
 
-#1:nrow(top_movements)
-  #1:nrow(top_movements)
 for( x in  1:nrow(top_movements) ){
   
   end_data = subset(num_aircraft_by_map_front, map_front == top_movements[x,'map_front'] & date_start == top_movements[x,'date_start'])
@@ -483,16 +378,14 @@ for( x in  1:nrow(top_movements) ){
 # 
 date_locs = num_aircraft_by_map_front %>% group_by(date_start) %>% summarise(start_x = min(x_coord_start), end_x = max(x_coord_end)) %>% as.data.frame()
 for(x in 1:nrow(date_locs)){
-
-  # base = base + annotation_custom(grob = textGrob(substr(date_locs[x,'date_start'], 1,7), rot = 0, gp=gpar(fontsize=5,fontface="italic")),  xmin = date_locs[x,'start_x'], xmax = date_locs[x,'end_x'], ymin = -1200, ymax = -1200)
+  
   base = base + annotation_custom(grob = textGrob(substr(date_locs[x,'date_start'], 1,7), rot = 0, gp=gpar(fontsize=5,fontface="italic")),  xmin = date_locs[x,'start_x'], xmax = date_locs[x,'end_x'], ymin = min(df[,'y']), ymax = min(df[,'y']))
   
-    if(as.numeric(substr(date_locs[x,'date_start'], 6,7)) %% 2 == 0){
-    #base = base + geom_segment(x = date_locs[x,'start_x'], xend = date_locs[x,'end_x'], y = 0, yend = 0)
+  if(as.numeric(substr(date_locs[x,'date_start'], 6,7)) %% 2 == 0){
     base = base + annotate("rect", ymin = -Inf, ymax = Inf, xmin = date_locs[x,'start_x'], xmax = date_locs[x,'end_x'], fill = "grey", alpha = .1, color = NA)
-
+    
   }
-
+  
 }
 
 shoah = read.csv('data/shoah_timeline.csv')
@@ -500,19 +393,24 @@ shoah = merge(
   shoah, 
   luftwaffe_locations %>% select(country, map_front) %>% unique() %>% as.data.frame(), 
   by = 'country', all.x = TRUE
-  )
+)
 shoah = shoah %>% mutate(date_start = as.Date(paste0(substr(date, 1 ,8 ), '15') ))
 shoah = merge(shoah, 
               num_aircraft_by_map_front %>% select(date_start, map_front, end_height, start_height, x_coord_end, x_coord_start),
               by = c('date_start','map_front')
-              )
+)
 for(x in 1:nrow(shoah)){
-
-  base = base + annotation_custom(grob = textGrob(shoah[x,'Event'], rot = 90,gp=gpar(fontsize=5,fontface="italic", col = 'yellow')),  xmin = shoah[x,'x_coord_end'], xmax = shoah[x,'x_coord_start']+100, ymin = shoah[x,'end_height'], ymax = shoah[x,'start_height'])
-
-
+  
+  base = base + annotation_custom(grob = textGrob(shoah[x,'Text'], rot = 90,gp=gpar(fontsize=3,fontface="italic", col = "#f8a53c")),  xmin = shoah[x,'x_coord_end']+50, xmax = shoah[x,'x_coord_start']+100, ymin = shoah[x,'end_height'], ymax = shoah[x,'start_height'])
+  
+  
 }
 
+
+title = 'A High Altitude Overview of the European Theater 1939-1945'
+second_title = 'Und Dass Sowas Von Sowas Kommt'
+base = base + annotation_custom(grob = textGrob(title, rot = 90,gp=gpar(fontsize=20,fontface="bold", col = "black")),  xmin = -100, xmax = -66, ymin = min(df[,'y']), ymax = max(df[,'y']))
+base = base + annotation_custom(grob = textGrob(second_title, rot = 90,gp=gpar(fontsize=10, fontface = "italic")),  xmin = -30, xmax = 0, ymin = min(df[,'y']), ymax = max(df[,'y']))
 
 date_min_max_heights = num_aircraft_by_map_front%>% subset(num_aircraft > 0) %>% group_by(date_start) %>% 
   summarise(min_height = min(start_height) , max_height = max(end_height))%>% as.data.frame()
@@ -523,16 +421,25 @@ timeline_text = merge(timeline_text, date_min_max_heights, by = 'date_start')
 timeline_text = timeline_text %>% mutate(y_start = ifelse(east == "East", max_height+100, min(df[,'y'])+100 ))
 timeline_text = timeline_text %>% mutate(y_end = ifelse(east == "East", max((df[,'y'])), min_height-100  ))
 
-# for(x in 1:nrow(timeline_text)){
-# 
-#   base = base + annotation_custom(
-#                                   grob = textbox_grob(timeline_text[x,'text']),  xmin = timeline_text[x,'x_coord_start'],
-#                                   xmax = timeline_text[x,'x_coord_start']+200, ymin = timeline_text[x,'y_start'], ymax = timeline_text[x,'y_end']
-#                                   )
-# 
-# 
-# }
-library(gridtext)
+base = base + annotation_custom(grob = textGrob("Data and code can be found here www.ww2.dk and code and here github.com/samcarlos/luftwaffe_locations.", rot = 90,gp=gpar(fontsize=10, fontface = "italic")),  xmin = max(df[,'x'])+200, xmax = max(df[,'x'])+300, ymin = min(df[,'y']), ymax = max(df[,'y']))
+
+
+
+explanation = "Below is a graphic that displays the movements, sizes, and losses (where data is available) of the Luftwaffe during the Second World War. Each Luftwaffe unit is geolocated and placed in a specified 'Front'. Germany is in the middle of the graphic while others are roughly ordered by the distance to Berlin (in E Germany). The left side are the Western Fronts (predominantly USA, GB) and the right side are the Eastern Fronts (USSR). For each month there are barplots for bombers (the first) and fighters (the second) in each of these Fronts. The width of each front is proportional to the sum of the number bombers and fighters. Between March 1942 and the end of 1944 there are actual numbers along with 'lost' aircraft written off for any reason.  If loss data exists then the barchart is colored depending on the loss rate (relatively high losses are red, low are blue) and a point is placed on the barplot to display the actual number of aircraft lossed. If there is no data available the barplots are gray and the sizes are estimated. Arrows represent the number of larger movements between fronts over time. As Luftwaffe units normally go back and forth between Germany to refit the arrows display only moves consisting of at least 60 planes. Black text outside the main plot describes the war on a month-month basis. Yellow text within the graphic describes stages of the Holocaust." 
+base = base + annotation_custom(
+  grob = textbox_grob(
+    explanation,hjust = hadjust, vjust = 0, halign = .5, valign = 0,
+    width = unit(5, "inches"), height = unit(1, "inches"),
+    orientation = "left-rotated"#, box_gp = gpar(col = "black"),
+    ,gp=gpar(fontsize=6)
+  )   ,
+  xmin = 0,
+  xmax = 600,
+  ymin = -400,
+  ymax = 800
+)
+
+
 
 for(x in 1:nrow(timeline_text)){
   hadjust = 0
@@ -540,23 +447,18 @@ for(x in 1:nrow(timeline_text)){
   
   base = base + annotation_custom(
     grob = textbox_grob(
-                    timeline_text[x,'text'],hjust = hadjust, vjust = 0, halign = .5, valign = 0,
-                    width = unit(2, "inches"), height = unit(1, "inches"),
-                    orientation = "left-rotated"#, box_gp = gpar(col = "black"),
-                    ,gp=gpar(fontsize=6)
-                    )   ,
+      timeline_text[x,'text'],hjust = hadjust, vjust = 0, halign = .5, valign = 0,
+      width = unit(2, "inches"), height = unit(1, "inches"),
+      orientation = "left-rotated"#, box_gp = gpar(col = "black"),
+      ,gp=gpar(fontsize=6)
+    )   ,
     xmin = timeline_text[x,'start_x'],
     xmax = timeline_text[x,'end_x'],
     ymin = timeline_text[x,'y_start'],
     ymax = timeline_text[x,'y_end']
   )
-  # base = base + annotation_custom(grob = textGrob(timeline_text[x,'text'], rot = 90,gp=gpar(fontsize=5)),      xmin = timeline_text[x,'start_x'],
-  #                                 xmax = timeline_text[x,'end_x'],
-  #                                 ymin = timeline_text[x,'y_start'],
-  #                                 ymax = timeline_text[x,'y_end']
-  # )
   
 }
 base = base+theme(legend.position = 'none')
-ggsave(base, file=paste0("/Users/sweiss/Downloads/temp_plots/temp6",".png"),width = 20000, height = 6000, units = "px",limitsize = FALSE)
+ggsave(base, file="plots/main_plot.png",width = 20000, height = 6000, units = "px",limitsize = FALSE)
 
