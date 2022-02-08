@@ -162,7 +162,7 @@ list_of_time_plots = lapply(list.files("plots/gif_plots_w_text/"), function(x) i
 
 library(animation)
 saveGIF({
-  for (i in list_of_time_plots[1:2]) plot(image_rotate(i, degrees = 90))},
+  for (i in list_of_time_plots) plot(image_rotate(i, degrees = 90))},
   movie.name = '/Users/sweiss/src/luftwaffe_locations/plots/overall_maps_by_time.gif', ani.width = 3778.5, ani.height = 6750)
 
 
