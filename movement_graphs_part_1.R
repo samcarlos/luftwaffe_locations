@@ -15,6 +15,7 @@ library(gridtext)
 
 load('data/luftwaffe_sizes_locations_2.rdata')
 
+
 #merge location data with sizes and loss data 
 #map_front are geographicial locations where luftwaffe fought
 
@@ -49,8 +50,8 @@ location_sizes = location_sizes %>% subset(group_type_graph != '' & group_type_g
 location_sizes_map_front %>% mutate(loss_ratio = (lost_enemy  + lost_accident + lost_maintenance) / total_w_approx) %>% mutate(approx_loss = loss_ratio* total_w_approx) %>% 
   group_by(map_front, date_start, group_type_graph) %>% 
   subset(group_type_graph == 'Fighter') %>% 
-  filter(date_start %in% as.Date(c('1944-05-15', '1944-06-15'))) %>% 
-  filter(map_front %in% c('France', 'eastern_germany', 'western_germany', 'southern_germany', 'low_countries')) %>%
+  filter(date_start %in% as.Date(c('1944-05-15', '1944-06-15','1944-07-15'))) %>% 
+  filter(map_front %in% c('France', 'eastern_germany', 'western_germany', 'southern_germany')) %>%
   summarise(totals = sum(total_w_approx), sum_lost = sum(approx_loss)) %>% View()
 
 
@@ -61,15 +62,34 @@ lost_fighters_by_month = location_sizes_map_front %>% subset(group_type_graph ==
   summarise(Total = sum(total_w_approx), Losses = sum(approx_loss, na.rm= TRUE)) %>% 
   as.data.frame() 
 lost_fighters_by_month_melt = melt(lost_fighters_by_month, id.vars = 'date_start')
-first_half_44_fighters_lost = lost_fighters_by_month_melt %>% subset(date_start > '1944-01-01' & date_start < '1944-08-01') %>% ggplot(aes(x = as.Date(as.Date(date_start - days(14))), y = value, group = variable, colour = variable)) + 
+
+lost_fighters_by_month_france = location_sizes_map_front %>% subset(group_type_graph == 'Fighter' & map_front == 'France') %>% 
+  mutate(loss_ratio = (lost_enemy  + lost_accident + lost_maintenance) / total_w_approx) %>% 
+  mutate(approx_loss = loss_ratio* total_w_approx) %>% 
+  group_by(date_start) %>% 
+  summarise(Total = sum(total_w_approx), Losses = sum(approx_loss, na.rm= TRUE)) %>% 
+  as.data.frame() 
+lost_fighters_by_month_france_melt = melt(lost_fighters_by_month_france, id.vars = 'date_start')
+lost_fighters_by_month_france_melt[,'variable'] = paste0(lost_fighters_by_month_france_melt[,'variable'], ' in France')
+first_half_44_fighters_lost_france = rbind(lost_fighters_by_month_france_melt) %>% subset(date_start > '1944-01-01' & date_start < '1944-07-01') %>% ggplot(aes(x = as.Date(as.Date(date_start - days(14))), y = value, group = variable, colour = variable)) + 
   geom_line(size = .75)+
   theme_minimal() +
   theme(legend.position="bottom", text = element_text(size = 5), panel.grid.minor = element_blank()) +
-  ggtitle('Number Luftwaffe Fighter Planes \nTotals and Losses (Jan - Jul 1944)') + 
+  ggtitle('Number Luftwaffe Fighter Planes in France \nTotals and Losses (Jan - Jun 1944)') + 
   ylab('Total Number of Fighter Planes') + 
   xlab('Date (Month)') +scale_x_date(date_labels="%b %y",date_breaks  ="1 month") + 
-  scale_color_manual(values = c("Total" = "#f6bb19", "Losses" = "#1b2010"))
+  scale_color_manual(values = c("Total in France" = "#f6bb19", "Losses in France" = "#cf3110"))
 
+first_half_44_fighters_lost = rbind(lost_fighters_by_month_melt) %>% subset(date_start > '1944-01-01' & date_start < '1944-07-01') %>% ggplot(aes(x = as.Date(as.Date(date_start - days(14))), y = value, group = variable, colour = variable)) + 
+  geom_line(size = .75)+
+  theme_minimal() +
+  theme(legend.position="bottom", text = element_text(size = 5), panel.grid.minor = element_blank()) +
+  ggtitle('Number Luftwaffe Fighter Planes All Fronts \nTotals and Losses (Jan - Jun 1944)') + 
+  ylab('Total Number of Fighter Planes') + 
+  xlab('Date (Month)') +scale_x_date(date_labels="%b %y",date_breaks  ="1 month") + 
+  scale_color_manual(values = c("Total" = "#f6bb19", "Losses" = "#cf3110"))
+
+ggsave(first_half_44_fighters_lost_france, file="plots/first_half_44_fighters_lost_france.png",width = 1000, height = 1000/((1+sqrt(5))/2), units = "px",limitsize = FALSE)
 
 ggsave(first_half_44_fighters_lost, file="plots/first_half_44_fighters_lost.png",width = 1000, height = 1000/((1+sqrt(5))/2), units = "px",limitsize = FALSE)
 
@@ -264,7 +284,7 @@ library(gganimate)
 normandy_invasion_movement = ggplot(data = world_map, color = 'grey') + xlim(xlims_normandy) + ylim(ylims_normandy)+
   #annotate("rect", xmin = -5, xmax = 50, ymin = 00, ymax = 30,
   #         alpha = 1,fill = "white")+
-  geom_sf() + geom_point(data =   to_maps %>% select( -numeric_group_type_graph) %>% 
+  geom_sf() + geom_point(data =   to_maps %>% select( -numeric_group_type_graph, -Plane_Type) %>% 
                                                              mutate(date_start = (date_start)) %>% arrange(date_start) %>% 
                                                              subset(date_start > '1944-05-01' & date_start < '1944-07-10'),
                                                            aes(x = new_lon , y = new_lat  , group = plocation_order, colour = Plane_Type, alpha = .9 , size =.1), inherit.aes = FALSE)  + 
@@ -363,6 +383,8 @@ invasion_of_greece = get_movement_plots('1941-03-10','1941-06-10' ,
 barbarosa = get_movement_plots('1941-05-10','1942-03-10' ,
                                c(-5,42), c(31,70), 'Luftwaffe Locations \n Invasion of Soviet Union')
 
+mid_war = get_movement_plots('1942-03-10' ,'1943-08-10',
+                               c(-5,42), c(31,75), 'Luftwaffe Locations \n mid')
 
 anim_save(filename = "/users/sweiss/src/luftwaffe_locations/plots/normandy_invasion.gif", normandy_invasion)
 anim_save(filename = "/users/sweiss/src/luftwaffe_locations/plots/poland_movement.gif", poland_invasion)
@@ -396,20 +418,20 @@ map <- get_googlemap(center = 'Košice', zoom = 4,
                      style = 'feature:administrative.country|element:labels|visibility:off')
 
 animation
-animation = ggplot(data = world_map, color = 'grey') +geom_sf() + geom_point(data =   rbind(to_maps %>% select( -numeric_group_type_graph), lost_to_maps) %>% 
+animation = ggplot(data = world_map, color = 'grey') +geom_sf() + geom_point(data =   rbind(to_maps %>% select( -numeric_group_type_graph, -Plane_Type), lost_to_maps) %>% 
                                                                                mutate(date_start = (date_start)) %>% arrange(date_start) %>% 
-                                                                               subset(date_start > '1941-05-14' & date_start < '1941-12-14'),
+                                                                               subset(date_start > '1942-05-14' & date_start < '1942-12-14'),
                                                                              aes(x = new_lon , y = new_lat  , group = plocation_order, colour = group_type_graph, 
                                                                                  shape = as.factor(group_type_graph), alpha = .5 , size =.1), inherit.aes = FALSE) +
-  geom_path(data =   rbind(to_maps %>% select( -numeric_group_type_graph), lost_to_maps) %>% 
-              mutate(date_start = (date_start)) %>% arrange(date_start) %>% 
-              subset(date_start > '1941-05-14' & date_start < '1941-12-14'),
-            aes(x = new_lon , y = new_lat  , group = plocation_order, alpha = .5 , size =.1), inherit.aes = FALSE)+scale_size(range = c(0,2))  +
   xlim(-5,50) + theme_minimal()+ylim(30,70)  + #geom_sf(data = world_map, color = 'grey')+ 
   transition_time((date_start )) + exit_disappear()+theme(legend.position = "None") +ease_aes('linear', interval = 0.01,state_length = 1)
 
+PLOT_WIDTH = 1000
+temp_move_plot = animate(animation, 
+                         duration = 15, 
+                         fps  =  30, height =1000 , width =1000)
 
-test =ggplot(data =   rbind(to_maps %>% select( -numeric_group_type_graph), lost_to_maps) %>% 
+test =ggplot(data =   rbind(to_maps %>% select( -numeric_group_type_graph, -Plane_Type), lost_to_maps) %>% 
                mutate(date_start = as.Date(date_start)) %>% arrange(date_start) %>% 
                subset(date_start > '1941-08-14' & date_start < '1942-01-14'),
              aes(x = new_lon , y = new_lat  , group = plocation_order, colour = group_type_graph, 

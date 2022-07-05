@@ -45,7 +45,7 @@ ggsave(unemployment_great_depression_plot, file="plots/unemployment_great_depres
 gdp_capita_1938 = read.csv('data/additional_plots/gdp_capita_1938.csv')
 colnames(gdp_capita_1938)[1] = 'Country'
 gdp_capita_1938 = gdp_capita_1938 %>% mutate(Country = factor(Country, levels = gdp_capita_1938[order(-gdp_capita_1938[,'gdp_capita']), 'Country']))
-gdp_capita_1938_plot = gdp_capita_1938 %>% ggplot(aes(x = Country, y = gdp_capita, fill = Country)) + geom_bar(stat = "identity")+
+gdp_capita_1938_plot = gdp_capita_1938 %>% ggplot(aes(x = Country, y = gdp_capita, fill = Country)) + geom_bar(stat = "identity")+ theme_minimal()+
   scale_fill_manual(name = "Country", values = colorBlindBlack8[1:6])+
   theme(legend.position="None", text = element_text(size = 5)) +
   ggtitle('GDP / Capita Country Comparison 1938') + 
