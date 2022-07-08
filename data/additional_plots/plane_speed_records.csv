@@ -1,0 +1,53 @@
+Date,Pilot,mph,km/h,Aircraft,Location,Country
+12/17/1903,Wilbur Wright,6.82,10.98,Wright Flyer,"Kitty Hawk, North Carolina, US",US
+10/5/1905,Wilbur Wright,37.85,60.23,Wright Flyer III,"Huffman Prairie, Ohio, US",US
+11/12/1906,Alberto Santos-Dumont,25.65,41.292,Santos-Dumont 14-bis,"Bagatelle Castle, Paris, France",France
+10/26/1907,Henry Farman,32.73,52.7,Voisin-Farman I,"Issy-les-Moulineaux, France",France
+5/25/1909,Paul Tissandier,34.04,54.81,Wright Model A,"Pau, France",France
+8/23/1909,Glenn Curtiss,44.367,69.821,Curtiss No. 2,"Reims, France",France
+8/24/1909,Louis Blériot,46.16,74.318,Blériot XI,"Reims, France",France
+8/28/1909,Louis Blériot,47.823,76.995,Blériot XI,"Reims, France",France
+4/23/1910,Hubert Latham,48.186,77.579,Antoinette VII,"Nice, France",France
+7/10/1910,Léon Morane,66.154,106.508,Blériot,"Reims, France",France
+10/29/1910,Alfred Leblanc,68.171,109.756,Blériot XI,"New York, New York, US",US
+4/12/1911,Alfred Leblanc,69.42,111.801,Blériot,"Pau, France",France
+5/11/1911,Édouard Nieuport,73.385,119.76,Nieuport IIN,"Châlons, France",France
+6/12/1911,Alfred Leblanc,77.64,125,Blériot,,France
+6/16/1911,Édouard Nieuport,80.781,130.057,Nieuport IIN,"Châlons, France",France
+6/21/1911,Édouard Nieuport,82.693,133.136,Nieuport IIN,"Châlons, France",France
+1/13/1912,Jules Védrines,87.68,145.161,Deperdussin Monocoque,"Pau, France",France
+2/22/1912,Jules Védrines,100.18,161.29,Deperdussin Monocoque,"Pau, France",France
+2/29/1912,Jules Védrines,100.9,162.454,Deperdussin Monocoque,"Pau, France",France
+3/1/1912,Jules Védrines,103.62,166.821,Deperdussin Monocoque,"Pau, France",France
+3/2/1912,Jules Védrines,104.29,167.91,Deperdussin Monocoque,"Pau, France",France
+7/13/1912,Jules Védrines,106.07,170.777,Deperdussin Monocoque,"Reims, France",France
+9/9/1912,Jules Védrines,108.14,174.1,Deperdussin Monocoque,"Chicago, Illinois, US",US
+6/17/1913,Maurice Prévost,111.69,179.82,Deperdussin Monocoque,"Reims, France",France
+9/27/1913,Maurice Prévost,119.19,191.897,Deperdussin Monocoque,"Reims, France",France
+9/29/1913,Maurice Prévost,126.61,203.85,Deperdussin Monocoque,"Reims, France",France
+2/7/1920,Joseph Sadi-Lecointe,171,275.264,Nieuport-Delage NiD 29V,"Villacoublay, France.",France
+2/28/1920,Jean Casale,176.1,283.464,SPAD S.20bis,"Villacoublay, France",France
+10/9/1920,Bernard de Romanet,181.8,292.682,SPAD S.20bis,"Buc, France",France
+10/10/1920,Joseph Sadi-Lecointe,184.3,296.694,Nieuport-Delage NiD 29V,"Buc, France",France
+10/20/1920,Joseph Sadi-Lecointe,187.9,302.529,Nieuport-Delage NiD 29V,"Villacoublay, France",France
+11/4/1920,Bernard de Romanet,191.9,309.012,SPAD S.XX,"Buc, France",France
+12/12/1920,Joseph Sadi-Lecointe,194.4,313.043,Nieuport-Delage NiD 29V,"Villacoublay, France",France
+9/26/1921,Joseph Sadi-Lecointe,205.2,330.275,Nieuport-Delage Sesquiplan,"Ville Sauvage, France",France
+10/13/1922,Billy Mitchell,222.88,358.836,Curtiss R,"Detroit, Michigan, US",US
+10/18/1922,Billy Mitchell,224.28,360.93,Curtiss R-6,"Selfridge Field, Detroit, Michigan, US",US
+2/15/1923,Joseph Sadi-Lecointe,232.91,375,Nieuport-Delage NiD 42S,"Istres, France",France
+3/29/1923,1st Lt. Russell L. Maughan,236.587,380.74,Curtiss R-6,"Wright Field, Dayton, Ohio, US",US
+11/2/1923,Lt. Harold J. Brow,259.16,417.07,Curtiss R2C-1,"Mineola, New York, US",US
+11/4/1923,Lt. Alford J. Williams,266.59,429.02,Curtiss R2C-1,"Mineola, New York, US",US
+11/11/1924,Florentin Bonnet,278.37,448.171,Bernard-Ferbois V.2,,Italy
+11/4/1927,Mario de Bernardi,297.7,479.29,Macchi M.52 seaplane,"Venice, Italy",Italy
+3/30/1928,Mario de Bernardi,318.62,512.776,Macchi M.52bis seaplane,"Venice, Italy",Italy
+9/10/1929,George H. Stainforth,336.3,541.4,Gloster VI seaplane,"Calshot, UK",UK
+9/12/1929,Augustus Orlebar,357.7,575.5,Supermarine S.6 seaplane,"Calshot, UK",UK
+9/13/1931,George H. Stainforth,407.5,655.8,Supermarine S.6B seaplane,"Lee-on-the-Solent, UK",UK
+4/10/1933,Francesco Agello,423.6,682.078,Macchi M.C.72 seaplane,"Desenzano del Garda, Italy",Italy
+10/23/1934,Francesco Agello,440.5,709.209,Macchi M.C.72 seaplane,"Desenzano del Garda, Italy",Italy
+9/13/1935,Howard Hughes,354.4,567.12,Hughes H-1 Racer,"Santa Ana, California, US",US
+11/11/1937,Dr. Hermann Wurster,379.63,610.95,Messerschmitt Bf 109 V.13,"Augsburg, Germany",Germany
+3/30/1939,Hans Dieterle,466.6,746.6,Heinkel He 100 V8,"Oranienburg, Germany",Germany
+4/26/1939,Fritz Wendel,469.22,755.138,Messerschmitt Me 209 V1,"Augsburg, Germany",Germany
