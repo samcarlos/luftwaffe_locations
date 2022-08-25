@@ -22,7 +22,7 @@ library(sf)
 library(rnaturalearth)
 library(gganimate)
 
-load('data/luftwaffe_sizes_locations_2.rdata')
+load('data/luftwaffe_sizes_locations.rdata')
 
 
 ##
@@ -89,7 +89,7 @@ luftwaffe_sizes %>% mutate(date_start = date_start + days(14)) %>%
          add, add_new, add_maintenance, add_other_units, lost, lost_enemy, lost_accident, lost_maintenance,
          lost_other_units, total_eom) %>%
   mutate(date = date_start) %>% select(-date_start) %>%
-  write.csv(file = 'data/luftwaffe_sizes_losses', row.names = FALSE)
+  write.csv(file = 'data/luftwaffe_sizes_losses.csv', row.names = FALSE)
 
 
 
@@ -534,51 +534,3 @@ lapply(seq(as.Date('1939-08-01'), as.Date('1942-02-01'), 'month') + days(14), cr
 lapply(seq(as.Date('1942-03-01'), as.Date('1944-12-01'), 'month') + days(14), create_maps_w_losses)
 lapply(seq(as.Date('1945-01-01'), as.Date('1945-04-01'), 'month') + days(14), create_maps)
 
-
-create_maps_w_losses(as.Date('1945-01-01'))
-
-lapply(seq(as.Date('1945-01-01'), as.Date('1945-05-01'), 'month') + days(14), create_maps)
-lapply(seq(as.Date('1945-04-01'), as.Date('1945-06-01'), 'month') + days(14), create_maps)
-
-
-ggsave(airplaine_speed_records, file="plots/airplaine_speed_records.png",width = 1000, height = 1000/((1+sqrt(5))/2), units = "px",limitsize = FALSE)
-
-
-
-library(rnaturalearth)
-world_map <- ne_countries(scale = 50, returnclass = 'sf')
-
-
-library(gganimate)
-
-all_luft_locs_map = ggplot(data = world_map, color = 'grey') + xlim(c(-5,50)) + ylim(c(30,70)) +
-  geom_sf()+  geom_point(data = luftwaffe_locations%>%   select(date_start, lon, lat) %>% unique()
-                         %>% unique(), aes(x = lon, y = lat),shape = 3, size = .1, color = 'red') + 
-  ggtitle('All Mapped Locations ') + xlab('') + ylab('') + ggtitle('Map of Urope')
-  #annotate("rect", xmin = -5, xmax = 50, ymin = 00, ymax = 30,
-  
-
-paste(paste0(seq(as.Date('1940-06-01'), as.Date('1940-10-01'), 'month') + days(14), '.gif'), collapse = ' ')
-
-paste(paste0(seq(as.Date('1940-11-01'), as.Date('1941-04-01'), 'month') + days(14), '.gif'), collapse = ' ')
-
-paste(paste0(seq(as.Date('1940-11-01'), as.Date('1941-03-01'), 'month') + days(14), '.gif'), collapse = ' ')
-
-paste(paste0(seq(as.Date('1939-08-01'), as.Date('1941-02-01'), 'month') + days(14), '.gif'), collapse = ' ')
-
-paste(paste0(seq(as.Date('1941-02-01'),as.Date('1941-09-01'), 'month') + days(14), '.gif'), collapse = ' ')
-paste(paste0(seq(as.Date('1942-02-01'),as.Date('1942-09-01'), 'month') + days(14), '.gif'), collapse = ' ')
-
-paste(paste0(seq(as.Date('1939-08-01'), as.Date('1945-03-01'), 'month') + days(14), '.gif'), collapse = ' ')
-
-paste(paste0(seq(as.Date('1942-10-01'),as.Date('1943-03-01'), 'month') + days(14), '.gif'), collapse = ' ')
-
-paste(paste0(seq(as.Date('1943-09-01'),as.Date('1943-12-01'), 'month') + days(14), '.gif'), collapse = ' ')
-
-
-paste(paste0(seq(as.Date('1944-01-01'),as.Date('1944-05-01'), 'month') + days(14), '.gif'), collapse = ' ')
-paste(paste0(seq(as.Date('1944-06-01'),as.Date('1944-08-01'), 'month') + days(14), '.gif'), collapse = ' ')
-paste(paste0(seq(as.Date('1944-09-01'),as.Date('1944-12-01'), 'month') + days(14), '.gif'), collapse = ' ')
-paste(paste0(seq(as.Date('1945-01-01'),as.Date('1945-04-01'), 'month') + days(14), '.gif'), collapse = ' ')
-
-save()
