@@ -43,6 +43,8 @@ Code:
 
 For static image see: create_plots.R
 
+![Alt text](https://github.com/samcarlos/luftwaffe_locations/blob/main/plots/main_plot.png "Optional title")
+
 and for [GIF](https://www.youtube.com/watch?v=wnMIx-DsD6g&t=179s) see: movement_graphs_part_2.R
 
 
@@ -51,3 +53,6 @@ To create the GIF I cut (arbitarily) the map into 2 latitude by 2 longitude squa
 Before February 1942 I estimate the sizes of groups as the data for number of planes are not available before than. Each vertical line heigh shows the number of planes maxing out at 100 before flowing over into subsequent lines. There can be 10 lines each representing a max of 1000 planes.
 
 Starting February 1942 through December 1944 we not only have accurate data on the monthly number of planes at each location but we also see the monthly losses during that time period as well. In order to visualize the movements and losses I based the graphic as if the data came from a turned-based strategy game. Here I visualize two phases; a movement phase followed by a ‘battle phase’ which consists of two additions to the original visualization showed. 1) the hot spots of the war and 2) the planes destroyed fall off into place in this time series plot at the bottom.
+
+
+
