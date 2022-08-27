@@ -45,7 +45,7 @@ For static image see: create_plots.R
 
 ![Alt text](https://github.com/samcarlos/luftwaffe_locations/blob/main/plots/main_plot.png "Optional title")
 
-and for [GIF](https://www.youtube.com/watch?v=wnMIx-DsD6g&t=179s) see: movement_graphs_part_2.R
+and for [GIF](https://www.youtube.com/watch?v=wnMIx-DsD6g&t=179s) ![Alt text](https://github.com/samcarlos/luftwaffe_locations/blob/main/plots/gif_plots_w_losses/1944-05-15_1944-08-15_normandy_bagration.gif "Normandy Landings") see: movement_graphs_part_2.R
 
 
 To create the GIF I cut (arbitarily) the map into 2 latitude by 2 longitude squares and counted the number of aircraft within that square. I then color coded it by different type of aircraft. In the lower left of each square I have fighters (these include single engine, twine engine, and night fighters) and in the upper right of each square I have the number of bombers (either ground attack or general bombers). 
