@@ -1,8 +1,9 @@
 Code for blog posts [here](https://scweiss.blogspot.com/2022/02/a-high-altitude-overview-of-european.html) and [here](https://scweiss.blogspot.com/2022/07/blog-post.html)
 
+
 Data:
 
-I found locations and monthly aggregates of Luftwaffe forces throughout WW2 at ww2.dk. For example the locations of Jagdgeschwader 27 I. Gruppe (a fighter group) can be found [here](http://ww2.dk/air/jagd/jg27.htm) and the monthly sizes and losses can be found (here)[http://ww2.dk/oob/bestand/jagd/bijg27.html]. 
+I found locations and monthly aggregates of Luftwaffe forces throughout WW2 at ww2.dk. For example the locations of Jagdgeschwader 27 I. Gruppe (a fighter group) can be found [here](http://ww2.dk/air/jagd/jg27.htm) and the monthly sizes and losses can be found [here](http://ww2.dk/oob/bestand/jagd/bijg27.html).
 
 I scraped, merged and geolocated the data and included them under the `data` folder: `luftwaffe_sizes_losses.csv` and `luftwaffe_locations.csv` (`luftwaffe_sizes_locations.rdata` has data for both in R readable format).  
 
