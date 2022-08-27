@@ -2,9 +2,11 @@ Code for blog posts [here](https://scweiss.blogspot.com/2022/02/a-high-altitude-
 
 Data:
 
-The Germans in WW2 kept records every 10 days on Luftwaffe strength. Online I found locations and monthly aggregates at ww2.dk. I scraped the data and included them under the `data` folder: `luftwaffe_sizes_losses.csv` and `luftwaffe_locations.csv` (`luftwaffe_sizes_locations.rdata` has data for both in R readable format). 
+I found locations and monthly aggregates of Luftwaffe forces throughout WW2 at ww2.dk. For example the locations of Jagdgeschwader 27 I. Gruppe (a fighter group) can be found [here](http://ww2.dk/air/jagd/jg27.htm) and the monthly sizes and losses can be found (here)[http://ww2.dk/oob/bestand/jagd/bijg27.html]. 
 
-Geolocating the data proved to be difficult and inexact. In part this is due to the nature of recording the dataset itself. Germans would land in fields and generally describe a village or hamlet and not generally care about the spelling. Moreover the location names also highlight how different cities were named over time by different peoples and underscores that different ethnicities coexisted throughout Europe for hundreds of years. Where possible I made guesstimates and tried to get within the generally area. If a particular location is not found I use the previous known location.
+I scraped, merged and geolocated the data and included them under the `data` folder: `luftwaffe_sizes_losses.csv` and `luftwaffe_locations.csv` (`luftwaffe_sizes_locations.rdata` has data for both in R readable format).  
+
+Geolocating the data proved to be difficult and inexact. In part this is due to the nature of recording the dataset itself. Germans would land in fields and generally describe a village or hamlet and not generally care about the spelling. Moreover the location names also highlight how different cities were named over time by different peoples and underscores that different ethnicities coexisted throughout Europe for hundreds of years. Where possible I made guesstimates and tried to get within the general area. If a particular location is not found I use the previous known location.
 
 In addition the dates are sometimes available at the monthly level eg a particular squadron landed at a place sometime in May 1940 and not 25 May 1940. This has the effect that some groups appear in a location before or after they should be there. I trust the reader understands the limitations of using this data and can understand how this error will be displayed in the visualization. 
 
