@@ -258,6 +258,8 @@ df_1 = df_1 %>% arrange(dates) %>% mutate(temp_index = 1) %>% group_by(full_name
   select(-temp_index)
 
 
+usaaf_victory_credits_adj %>% group_by(Unit_Echelon) %>% summarise(Credit = sum(as.numeric(Credit), na.rm = TRUE)) %>% arrange(Credit)
+
 temp_date = as.Date('1944-03-01')
 num_pilots_w_x_credits_and_recent_claim = function(data, temp_date, num_credit_value, time_lag_value){
   subset_at_least_x_creds = data %>% subset(num_credits  >= num_credit_value)
@@ -542,3 +544,5 @@ araclocation_sizes = merge(
   on = c(group_type, squadron_number, group_number, subgroup, date_start), all.y = TRUE) %>% 
   mutate(approx_size = as.numeric(approx_size))
 
+library(rvest)
+temp_site = read.html('http://www.joebaugher.com/usaf_serials/1942_4.html')

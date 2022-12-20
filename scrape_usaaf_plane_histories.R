@@ -117,8 +117,13 @@ usaaf_kills_w_planes = merge(scaffold_fs_dates_merged, usaaf_kills,  by = c('FS_
 usaaf_kills_w_planes %>% subset(Theater %in% c('ETO', 'MTO')) %>% group_by(fighter_type, Theater) %>%
   summarise(credits =sum(as.numeric(Credit), na.rm = TRUE)) %>% as.data.frame()
 
-usaaf_kills_w_planes %>% group_by(yearmonth, fighter_type,Theater) %>% summarise(num_credits = sum(as.numeric(Credit), na.rm = TRUE)) %>% as.data.frame()%>%
-  ggplot(aes(x = yearmonth, y=  num_credits, colour = fighter_type)) + geom_line() + facet_grid(fighter_type~Theater)
+usaaf_kills_w_planes %>% group_by(yearmonth, fighter_type) %>% summarise(num_credits = sum(as.numeric(Credit), na.rm = TRUE)) %>% as.data.frame()%>%
+  ggplot(aes(x = yearmonth, y=  num_credits, colour = fighter_type)) + geom_line() #+ facet_grid(fighter_type~Theater)
+
+usaaf_kills_w_planes %>% group_by(yearmonth) %>% summarise(num_credits = sum(as.numeric(Credit), na.rm = TRUE)) %>% as.data.frame()%>%
+  ggplot(aes(x = yearmonth, y=  num_credits)) + geom_line() #+ facet_grid(fighter_type~Theater)
+usaaf_kills_w_planes %>% group_by(yearmonth) %>% summarise(num_credits = sum(as.numeric(Credit), na.rm = TRUE)) %>% as.data.frame()%>%
+  ggplot(aes(x = yearmonth, y=  num_credits)) + geom_line() #+ facet_grid(fighter_type~Theater)
 
 grouped_kills_date_theater %>% ggplot(aes(x = yearmonth, y = credits, group = Theater, color = Theater)) + geom_line() 
 
