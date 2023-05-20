@@ -8,7 +8,7 @@ library(reshape)
 library(ggplot2)
 library(dplyr)
 library(tidyr)
-
+library(ggpomological)
 #claims_east = read.csv('/users/sweiss/downloads/luftwaffe_claims/claims_east.txt')
 #claims_west = read.csv('/users/sweiss/downloads/claims_west.txt')
 claims_east = read.csv('/users/sweiss/src/luftwaffe_locations/data/claims_east.txt')
@@ -183,6 +183,23 @@ df_1[,'group_number'] = as.numeric(readr::parse_number(df_1[,'unit']))
 
 
 df_1[,'index'] = 1:nrow(df_1)
+altitude_1 = sapply(strsplit(df_1[,'Location'], ':'), function(x){
+  
+  if(length(x) > 1){ return(x[2])}else{return('')}
+    
+})
+altitude_1 = sapply(strsplit(altitude_1, '-'), function(x){
+  
+return(x[1])
+})
+df_1 = df_1 %>% mutate(estimated_altitude = as.numeric(gsub("\\D", "", altitude_1)))
+df_1 = df_1 %>% mutate(estimated_altitude = ifelse(estimated_altitude > 10000,NA,estimated_altitude))
+
+df_1 %>% subset(aircraft %in% c("B-17", "B-24", "P-51", "P-47",'P-38')) %>% subset(dates > '1943-12-01' & dates < '1944-02-01') %>% 
+  ggplot(aes(x = dates, y = estimated_altitude, colour = aircraft)) + geom_point()
+
+df_1 %>% subset(aircraft %in% c("B-17", "B-24", "P-51", "P-47",'P-38')) %>% subset(dates > '1943-12-01' & dates < '1944-02-01') %>% 
+  ggplot(aes(x = dates, y = estimated_altitude, colour = aircraft)) + geom_point()+facet_grid(aircraft~., scales = 'free') + geom_smooth()
 
 min_max_pilot_data = df_1 %>% group_by(full_name) %>% summarise(min_date = min(dates), max_date= max(dates)) %>% as.data.frame()
 min_max_pilot_data = min_max_pilot_data %>% mutate(full_name = factor( min_max_pilot_data[,'full_name'], levels = min_max_pilot_data[,'full_name'][order(min_max_pilot_data[,'min_date'])]))
@@ -209,19 +226,19 @@ enter_exit_luftwaffe_plot = min_max_pilot_data%>% mutate(min_date_month = as.yea
   #scale_size(c(,2)) + 
   theme_bw() + 
   theme_pomological() + 
-  theme(legend.position="bottom")+
+  theme(legend.position="bottom",text = element_text(size = 15))+
   xlab('Month Pilot Claimed First Aerial Victory') + 
   ylab('Month Pilot Claimed Last Aerial Victory') + 
   ggtitle('Number of Luftwaffe Pilots for Entering and Exiting Dataset by Month')
 
 enter_exit_luftwaffe_plot_by_pilot = min_max_pilot_data %>%as.data.frame() %>%
-  ggplot(aes(x = min_date, y = max_date)) + geom_point(alpha = .25, shape = 4, colour = 'red', position = 'jitter') +
+  ggplot(aes(x = min_date, y = max_date)) + geom_point(alpha = .1, shape = 4, colour = 'red', position = 'jitter') +
   #scale_colour_gradient(low = 'blue', high = 'red')+
   #scale_size(c(,2)) + 
   #theme_bw(  ) + 
   theme_pomological() + 
 
-  theme(legend.position="bottom")+
+  theme(legend.position="bottom",text = element_text(size = 15))+
   xlab('Date Pilot Claimed First Aerial Victory') + 
   ylab('Date Pilot Claimed Last Aerial Victory') + 
   ggtitle('First Claim Date by Last Claim Date for All Luftwaffe Pilots')
@@ -254,21 +271,44 @@ df_1 = merge(df_1, planes_by_nation %>% select(-counts), by = 'aircraft', all.x 
 
 
 library(ggpomological)
-claim_by_county = df_1 %>% mutate(front_bell = paste(front,  Belligerent) ) %>%group_by(yearmon, Belligerent ) %>% summarise(counts = n()) %>% as.data.frame() %>%  
-  mutate(Belligerent = ifelse(Belligerent %in% c('USA', "UK", "USSR"), Belligerent, 'Other_NA')) %>% 
-  ggplot(aes(x = yearmon, y = counts, fill = Belligerent)) + geom_bar(stat = 'identity', position = 'stack') + 
+
+major_timelines = data.frame(name = c('Battle of France', 'Battle of Britain', 'Invasion of Russia', 'To Stalingrad',
+                                      'Kursk / Sicily', 'Battle Over Germany', 'Normandy',
+                                      'Battle of the Bulge'),
+                             start_date = c('1940-05-01', '1940-09-01','1941-07-22','1942-08-01', '1943-07-01', '1943-12-01',
+                                            '1944-07-01','1944-12-01')
+                             
+                             ) %>% mutate(yearmon = as.yearmon(start_date))
+
+
+major_timelines = merge(major_timelines,  df_1  %>%group_by(yearmon ) %>% summarise(counts = n()) %>% as.data.frame() , 
+                        by = c('yearmon'), all.x = TRUE
+                        )
+
+major_timelines[which(major_timelines[,'name'] == 'Battle Over Germany'),'counts'] = 100
+library(ggrepel)
+
+claim_by_county =  
+  ggplot() + geom_bar(data = df_1 %>% mutate(front_bell = paste(front,  Belligerent) ) %>%group_by(yearmon, Belligerent ) %>% summarise(counts = n()) %>% as.data.frame() %>%  
+                        mutate(Belligerent = ifelse(Belligerent %in% c('USA', "UK", "USSR"), Belligerent, 'Other_NA')), aes(x = yearmon, y = counts, fill = Belligerent), stat = 'identity', position = 'stack') + 
   theme_pomological() + 
-  theme(legend.position = 'bottom')+
+  geom_label_repel(data = major_timelines, aes(y = counts+100, x = as.yearmon(start_date), label = name), fill = 'light grey')+
+  geom_line(aes(y = -10, x = as.yearmon(c('1943-09-01', '1944-06-01'))), size = 2) + 
+  # geom_rect(mapping=aes(xmin=as.yearmon('1943-09-01'), xmax=as.yearmon('1944-06-01'),
+  #                       ymin=500, ymax=2500), alpha = 0, fill = "light Grey", colour = 'black') + 
+  theme(legend.position = 'bottom',text = element_text(size = 15))+
   xlab('Month') + ylab('Number of Claims') +
-  ggtitle("Number of Luftwaffe Claims by Month and Belligerent")
+  ggtitle("Number of Luftwaffe Claims by Month and Belligerent") 
+
+
 
 claim_by_front = df_1 %>% mutate(front_bell = paste(front,  Belligerent) ) %>%group_by(yearmon, front ) %>% summarise(counts = n()) %>% as.data.frame() %>%  
  # mutate(Belligerent = ifelse(Belligerent %in% c('USA', "UK", "USSR"), Belligerent, 'Other_NA')) %>% 
   ggplot(aes(x = yearmon, y = counts, fill = front)) + geom_bar(stat = 'identity', position = 'stack') + 
   theme_pomological() + 
-  theme(legend.position = 'bottom') +
+  theme(legend.position = 'bottom',text = element_text(size = 15)) +
   xlab('Month') + ylab('Number of Claims') +
-  ggtitle("Number of Claims by Month by Front")
+  ggtitle("Number of Claims by Month by Front") 
 
 
 df_1[which(df_1[,'aircraft'] %in% c('P-51', 'P-47', 'P-38','B-17', 'B-24')),]%>% 
@@ -282,6 +322,7 @@ df_1%>%
   as.data.frame() %>% 
   mutate(new_counts = counts*((aircraft == 'B-17')+(aircraft == 'B-24')) - counts*((aircraft == 'P-51')+(aircraft == 'P-47')+(aircraft == 'P-38' )) )  %>% 
   ggplot(aes(x = yearmon, y= counts, fill = aircraft)) + geom_bar(stat = 'identity') 
+
 
 library(ggplot2)
 library(dplyr)
@@ -434,8 +475,14 @@ aces_w_kills_last_30_days_usaaf_dists = aces_w_kills_last_30_days_usaaf_dists %>
 
 #rbind(aces_w_kills_last_30_days_luftwaffe_dists,aces_w_kills_last_30_days_usaaf_dists) %>%
 #  ggplot(aes(x = dates, y = num_claims_by_counts, colour = as.factor(airforce))) + geom_line() + facet_grid(credit_cuts~., scales = 'free')
-rolling_number_of_pilots_by_kills = rbind(aces_w_kills_last_30_days_luftwaffe_dists,aces_w_kills_last_30_days_usaaf_dists, aces_w_kills_last_30_days_luftwaffe_dists_usaaf) %>%
-  ggplot(aes(x = dates, y = num_pilots_by_counts, colour = as.factor(airforce))) + geom_line() + facet_grid(credit_cuts~., scales = 'free')
+rolling_number_of_pilots_by_kills = rbind(#aces_w_kills_last_30_days_luftwaffe_dists,#
+  aces_w_kills_last_30_days_usaaf_dists, aces_w_kills_last_30_days_luftwaffe_dists_usaaf) %>% mutate(AirForce = airforce) %>%
+  ggplot(aes(x = dates, y = num_pilots_by_counts, colour = AirForce)) + geom_line() + facet_grid(credit_cuts~., scales = 'free')+
+  theme_pomological()+ theme(legend.position = 'bottom',text = element_text(size = 15)) +
+  ylab('Number of Pilots w/ Claims')+
+  ggtitle("Number of Pilots with Claims in Previous 30 Days")+
+  xlab("Date (Rolling Average in last 30 days)")
+
 
 rbind(aces_w_kills_last_30_days_luftwaffe_dists,aces_w_kills_last_30_days_usaaf_dists) %>%
   ggplot(aes(x = dates, y = num_pilots_by_counts, colour = as.factor(airforce))) + geom_line() + facet_grid(credit_cuts~.)
@@ -578,8 +625,6 @@ us_dist_of_claims = usaaf_kills  %>%group_by(SN) %>% filter(num_credits == max(n
   mutate(cumsum_percentage_claims = cumsum(percentage_claims)) %>% 
   mutate(airforce = 'usaaf')
 us_dist_of_claims %>% head(30)
-distribution_cumsum_claims = rbind(luftwaffe_dist_of_claims, us_dist_of_claims) %>% ggplot(aes(x = num_credits, y = cumsum_percentage_claims, colour = airforce)) + 
-  geom_line()
 rbind(luftwaffe_dist_of_claims, us_dist_of_claims) %>% subset(num_credits < 10) %>% ggplot(aes(x = num_credits, y = cumsum_percentage_claims, colour = airforce)) + 
   geom_line()
 
@@ -587,14 +632,20 @@ aerial_claims_dists = rbind(df_1  %>%group_by(full_name) %>% filter(num_credits 
                             usaaf_kills  %>%group_by(SN) %>% filter(num_credits == max(num_credits)) %>% as.data.frame() %>% select(num_credits) %>% mutate(af = 'usaaf')
                             )
 
-aerial_claims_dists %>% subset(num_credits < 25) %>% ggplot(aes(x = num_credits, fill = af)) + geom_histogram(position = 'dodge')
+dists_of_claims = aerial_claims_dists %>% mutate(AirForce = af) %>% subset(num_credits < 25) %>% 
+  ggplot(aes(x = num_credits, fill = AirForce)) + geom_histogram(position = 'dodge') + 
+   theme_pomological() +
+  theme(legend.position = 'bottom',text = element_text(size = 15))+
+  xlab("Number of Aerial Claims") + ylab("Counts of Pilots") + 
+  ggtitle("Distribution of Pilot Claims")
 
-luftwaffe_dist_of_claims %>% ggplot(aes(x = num_credits, y = cumsum_percentage_claims)) + geom_point()
-data.frame(dates = seq.Date(as.Date('1943-01-01'), as.Date('1945-05-01'), by = 'day'), aces_w_kills_last_30_days_luftwaffe,aces_w_kills_last_30_days_usaaf) %>% 
-  mutate(ratio = aces_w_kills_last_30_days_luftwaffe / aces_w_kills_last_30_days_usaaf) %>% 
-  ggplot(aes(x = dates, y = log(ratio))) + 
-  geom_point()
-
+distribution_cumsum_claims = rbind(luftwaffe_dist_of_claims, us_dist_of_claims) %>% subset(num_credits < 25)%>% mutate(AirForce = airforce)%>% 
+  ggplot(aes(x = num_credits, y = cumsum_percentage_claims*100, colour = AirForce)) + 
+  geom_line()+ theme_pomological() +theme(legend.position = 'bottom',text = element_text(size = 15))+ 
+  xlab("Number of Aerial Claims") + ylab("Cumulative Percentage of Pilots") + 
+  ggtitle("Cumulative Distribution of Pilot Claims")
+library(ggarrange)
+dists_of_claims = ggpubr::ggarrange(dists_of_claims,distribution_cumsum_claims, ncol = 1 )
 
 ##
 
@@ -656,17 +707,27 @@ usaaf_kills_w_planes %>% group_by(yearmonth, fighter_type,Theater) %>% summarise
 
 usaaf_plane_kills_by_type = usaaf_kills_w_planes %>% subset(yearmonth> '1942-01-01') %>% group_by(yearmonth, fighter_type,Theater) %>% summarise(num_credits = sum(as.numeric(Credit), na.rm = TRUE)) %>% as.data.frame()%>%
   ggplot(aes(x = yearmonth, y=  num_credits, fill = fighter_type)) + geom_bar(stat = 'identity', position = 'stack') + facet_grid(.~Theater)+ theme_minimal()+
-  theme(legend.position = 'bottom') +
+  theme_pomological()+ theme(legend.position = 'bottom',text = element_text(size = 15)) + 
   xlab('Date (Month)') + ylab('Number of USAAF Aerial Claims') + 
   ggtitle('Number of USAAF Aerial CLaims by Theater and Fighter Type')
 
 
-claim_by_county
-claim_by_front
+ggsave(claim_by_county, width = 8, height = 6, file = '/users/sweiss/downloads/luftwaffe_claims_by_country1.png', dpi = 600)
+ggsave(rolling_number_of_pilots_by_kills, width = 8, height = 6, file = '/users/sweiss/downloads/rolling_number_of_pilots_by_kills.png', dpi = 600)
+
+ggsave(enter_exit_luftwaffe_plot, width = 8, height = 6, file = '/users/sweiss/downloads/enter_exit_luftwaffe_plot.png', dpi = 600)
+ggsave(enter_exit_luftwaffe_plot_by_pilot, width = 8, height = 6, file = '/users/sweiss/downloads/enter_exit_luftwaffe_plot_by_pilot.png', dpi = 600)
+ggsave(usaaf_plane_kills_by_type, width = 8, height = 6, file = '/users/sweiss/downloads/usaaf_plane_kills_by_type.png', dpi = 600)
+ggsave(dists_of_claims, width = 8, height = 6, file = '/users/sweiss/downloads/dists_of_claims.png', dpi = 600)
+
+
+
 enter_exit_luftwaffe_plot
 enter_exit_luftwaffe_plot_by_pilot
 
-distribution_cumsum_claims
-rolling_number_of_pilots_by_kills
 
+usaaf_plane_kills_by_type
+
+dists_of_claims
+rolling_number_of_pilots_by_kills
 
