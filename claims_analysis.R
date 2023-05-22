@@ -244,7 +244,6 @@ enter_exit_luftwaffe_plot_by_pilot = min_max_pilot_data %>%as.data.frame() %>%
   ggtitle('First Claim Date by Last Claim Date for All Luftwaffe Pilots')
 
 
-
 min_max_pilot_data %>% mutate(min_date_month = as.yearmon(min_date), max_date_month = as.yearmon(max_date)) %>%
   group_by(min_date_month)%>% summarise(counts = n()) %>% as.data.frame()%>%
   ggplot(aes(x = min_date_month , y= as.numeric(counts))) + geom_line()+
@@ -273,7 +272,7 @@ df_1 = merge(df_1, planes_by_nation %>% select(-counts), by = 'aircraft', all.x 
 library(ggpomological)
 
 major_timelines = data.frame(name = c('Battle of France', 'Battle of Britain', 'Invasion of Russia', 'To Stalingrad',
-                                      'Kursk / Sicily', 'Battle Over Germany', 'Normandy',
+                                      'Kursk / Sicily ', 'Battle Over Germany', 'Normandy',
                                       'Battle of the Bulge'),
                              start_date = c('1940-05-01', '1940-09-01','1941-07-22','1942-08-01', '1943-07-01', '1943-12-01',
                                             '1944-07-01','1944-12-01')
@@ -300,6 +299,21 @@ claim_by_county =
   xlab('Month') + ylab('Number of Claims') +
   ggtitle("Number of Luftwaffe Claims by Month and Belligerent") 
 
+enter_exit_luftwaffe_plot_by_pilot = 
+  ggplot() + geom_point(data = min_max_pilot_data %>%as.data.frame(),aes(x = min_date, y = max_date), alpha = .1, shape = 4, colour = 'red', position = 'jitter') +
+  #scale_colour_gradient(low = 'blue', high = 'red')+
+  #scale_size(c(,2)) + 
+  #theme_bw(  ) + 
+  theme_pomological() + 
+  
+  theme(legend.position="bottom",text = element_text(size = 15))+
+  xlab('Date Pilot Claimed First Aerial Victory') + 
+  ylab('Date Pilot Claimed Last Aerial Victory') + 
+  ggtitle('First Claim Date by Last Claim Date for All Luftwaffe Pilots')
+
+
+enter_exit_luftwaffe_plot_by_pilot = enter_exit_luftwaffe_plot_by_pilot + geom_text_repel(data = major_timelines, aes(y = as.Date('1939-09-1'), x = as.Date(start_date) , label = name))  
+enter_exit_luftwaffe_plot_by_pilot
 
 
 claim_by_front = df_1 %>% mutate(front_bell = paste(front,  Belligerent) ) %>%group_by(yearmon, front ) %>% summarise(counts = n()) %>% as.data.frame() %>%  
@@ -479,9 +493,43 @@ rolling_number_of_pilots_by_kills = rbind(#aces_w_kills_last_30_days_luftwaffe_d
   aces_w_kills_last_30_days_usaaf_dists, aces_w_kills_last_30_days_luftwaffe_dists_usaaf) %>% mutate(AirForce = airforce) %>%
   ggplot(aes(x = dates, y = num_pilots_by_counts, colour = AirForce)) + geom_line() + facet_grid(credit_cuts~., scales = 'free')+
   theme_pomological()+ theme(legend.position = 'bottom',text = element_text(size = 15)) +
-  ylab('Number of Pilots w/ Claims')+
+  ylab('Number of Pilots w/ Claims by Claim Bucket')+
   ggtitle("Number of Pilots with Claims in Previous 30 Days")+
   xlab("Date (Rolling Average in last 30 days)")
+
+rolling_number_of_pilots_by_kills = 
+  ggplot() + 
+  geom_line(data = rbind(#aces_w_kills_last_30_days_luftwaffe_dists,#
+    aces_w_kills_last_30_days_usaaf_dists, aces_w_kills_last_30_days_luftwaffe_dists_usaaf) %>% mutate(AirForce = airforce) %>% 
+      mutate(credit_cuts = factor(credit_cuts, levels = c('(0,3]', '(3,5]', '(5,10]', '(10,500]'))), 
+    aes(x = dates, y = num_pilots_by_counts, colour = AirForce)
+    ) + facet_grid(credit_cuts~., scales = 'free')+
+  theme_pomological()+ theme(legend.position = 'bottom',text = element_text(size = 15)) +
+  ylab('Number of Pilots w/ Claims by Claim Bucket')+
+  ggtitle("Number of Pilots with Claims in Previous 30 Days")+
+  xlab("Date (Rolling Average in last 30 days)")
+
+rolling_number_of_pilots_by_kills = rolling_number_of_pilots_by_kills + geom_segment(data = timeline_df %>% mutate(position = position / 10 ) %>% mutate(credit_cuts = ('Timeline')), 
+             aes(x = as.Date(start_date) , xend = as.Date(end_date), y = position, yend = position)) + 
+  geom_text_repel(data = timeline_df %>% mutate(position = position / 10 ) %>% mutate(credit_cuts = ('Timeline')), 
+                  aes(x = as.Date(start_date), y = position, label = event), size= 3, min.segment.length = 0)
+  
+rolling_number_of_pilots_by_kills_all = 
+  ggplot() + 
+  geom_line(data = rbind(aces_w_kills_last_30_days_luftwaffe_dists,
+    aces_w_kills_last_30_days_usaaf_dists, aces_w_kills_last_30_days_luftwaffe_dists_usaaf) %>% mutate(AirForce = airforce) %>% 
+      mutate(credit_cuts = factor(credit_cuts, levels = c('(0,3]', '(3,5]', '(5,10]', '(10,500]'))), 
+    aes(x = dates, y = num_pilots_by_counts, colour = AirForce)
+  ) + facet_grid(credit_cuts~., scales = 'free')+
+  theme_pomological()+ theme(legend.position = 'bottom',text = element_text(size = 15)) +
+  ylab('Number of Pilots w/ Claims by Claim Bucket')+
+  ggtitle("Number of Pilots with Claims in Previous 30 Days")+
+  xlab("Date (Rolling Average in last 30 days)")
+
+rolling_number_of_pilots_by_kills_all = rolling_number_of_pilots_by_kills_all + geom_segment(data = timeline_df %>% mutate(position = position / 10 ) %>% mutate(credit_cuts = ('Timeline')), 
+                                                                                     aes(x = as.Date(start_date) , xend = as.Date(end_date), y = position, yend = position)) + 
+  geom_text_repel(data = timeline_df %>% mutate(position = position / 10 ) %>% mutate(credit_cuts = ('Timeline')), 
+                  aes(x = as.Date(start_date), y = position, label = event), size= 3, min.segment.length = 0)
 
 
 rbind(aces_w_kills_last_30_days_luftwaffe_dists,aces_w_kills_last_30_days_usaaf_dists) %>%
@@ -712,13 +760,43 @@ usaaf_plane_kills_by_type = usaaf_kills_w_planes %>% subset(yearmonth> '1942-01-
   ggtitle('Number of USAAF Aerial CLaims by Theater and Fighter Type')
 
 
-ggsave(claim_by_county, width = 8, height = 6, file = '/users/sweiss/downloads/luftwaffe_claims_by_country1.png', dpi = 600)
-ggsave(rolling_number_of_pilots_by_kills, width = 8, height = 6, file = '/users/sweiss/downloads/rolling_number_of_pilots_by_kills.png', dpi = 600)
+timeline_df = data.frame( 
+  start_date = as.Date(c('1944-01-21', '1944-02-20','1944-03-05', '1943-06-14', '1944-06-06', '1943-10-14','1943-08-17','1943-12-05', '1943-07-09', '1944-12-16')),
+  end_date = as.Date(c('1944-01-21', '1944-02-25','1944-03-08','1944-04-19', '1944-06-06','1943-10-14','1943-08-17','1943-12-05', '1943-07-17', '1945-01-28')),
+  event = c('First Duty Change','Operation Argument','Battle of Berlin','Operation Pointblank','D-Day','2nd Schweinfurt','1st Scwheinfurt', 'First Mustang Escort', 'Invasion of Sicily', 'Battle of the Bulge'),
+  position = c(-.5,-1,-1,-2,-.5,-1,-1, 
+               -.5,-1,-1)*10,
+  text_position = -c(.55,1.05,1.05,2.05,.95,1.05,1.05,.55,1,1)
+)
+timeline_df = timeline_df   %>% subset(event != 'First Mustang Escort')
+timeline_df = timeline_df   %>% subset(event != 'Operation Pointblank')
+timeline_df = timeline_df   %>% subset(event != '1st Scwheinfurt')
+timeline_df = timeline_df   %>% subset(event != '2nd Schweinfurt')
 
-ggsave(enter_exit_luftwaffe_plot, width = 8, height = 6, file = '/users/sweiss/downloads/enter_exit_luftwaffe_plot.png', dpi = 600)
-ggsave(enter_exit_luftwaffe_plot_by_pilot, width = 8, height = 6, file = '/users/sweiss/downloads/enter_exit_luftwaffe_plot_by_pilot.png', dpi = 600)
-ggsave(usaaf_plane_kills_by_type, width = 8, height = 6, file = '/users/sweiss/downloads/usaaf_plane_kills_by_type.png', dpi = 600)
-ggsave(dists_of_claims, width = 8, height = 6, file = '/users/sweiss/downloads/dists_of_claims.png', dpi = 600)
+
+usaaf_plane_kills_by_type = ggplot() + 
+geom_bar(data = usaaf_kills_w_planes %>% subset(yearmonth> '1942-01-01') %>% group_by(yearmonth, fighter_type,Theater) %>% 
+           summarise(num_credits = sum(as.numeric(Credit), na.rm = TRUE)) %>% as.data.frame() %>% mutate(Fighter = fighter_type), 
+         aes(x = yearmonth, y=  num_credits, fill = Fighter),stat = 'identity', position = 'stack') +
+  geom_segment(data = timeline_df %>% mutate(position = position / 10 + 700) %>% mutate(Theater = ('MTO')), 
+               aes(x = as.yearmon(start_date) , xend = as.yearmon(end_date), y = position, yend = position)) + 
+  geom_text_repel(data = timeline_df %>% mutate(position = position / 10 + 700) %>% mutate(Theater = ('MTO')), 
+                   aes(x = as.yearmon(start_date), y = position, label = event), size= 3, min.segment.length = 0)+ 
+   facet_grid(Theater~.)+ theme_minimal()+
+  theme_pomological()+ theme(legend.position = 'bottom',text = element_text(size = 15)) + 
+  xlab('Date (Month)') + ylab('Number of USAAF Aerial Claims') + 
+  ggtitle('Number of USAAF Aerial CLaims by Theater and Fighter Type')
+
+
+ggsave(claim_by_county, width = 8, height = 6, file = '/users/sweiss/src/luftwaffe_locations/plots/luftwaffe_claims_by_country.png', dpi = 600)
+ggsave(rolling_number_of_pilots_by_kills, width = 8, height = 6, file = '/users/sweiss/src/luftwaffe_locations/plots/rolling_number_of_pilots_by_kills.png', dpi = 600)
+ggsave(rolling_number_of_pilots_by_kills_all, width = 8, height = 6, file = '/users/sweiss/src/luftwaffe_locations/plots/rolling_number_of_pilots_by_kills_all.png', dpi = 600)
+
+
+ggsave(enter_exit_luftwaffe_plot, width = 8, height = 6, file = '/users/sweiss/src/luftwaffe_locations/plots/enter_exit_luftwaffe_plot.png', dpi = 600)
+ggsave(enter_exit_luftwaffe_plot_by_pilot, width = 8, height = 6, file = '/users/sweiss/src/luftwaffe_locations/plots/enter_exit_luftwaffe_plot_by_pilot.png', dpi = 600)
+ggsave(usaaf_plane_kills_by_type, width = 8, height = 6, file = '/users/sweiss/src/luftwaffe_locations/plots/usaaf_plane_kills_by_type.png', dpi = 600)
+ggsave(dists_of_claims, width = 8, height = 6, file = '/users/sweiss/src/luftwaffe_locations/plots/dists_of_claims.png', dpi = 600)
 
 
 
